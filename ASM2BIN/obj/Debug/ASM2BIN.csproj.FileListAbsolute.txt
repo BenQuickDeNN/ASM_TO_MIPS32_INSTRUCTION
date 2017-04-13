@@ -1,0 +1,5 @@
+E:\projects\VS2015\ASM2BIN\ASM2BIN\obj\Debug\ASM2BIN.csprojResolveAssemblyReference.cache
+E:\projects\VS2015\ASM2BIN\ASM2BIN\bin\Debug\ASM2BIN.exe
+E:\projects\VS2015\ASM2BIN\ASM2BIN\bin\Debug\ASM2BIN.pdb
+E:\projects\VS2015\ASM2BIN\ASM2BIN\obj\Debug\ASM2BIN.exe
+E:\projects\VS2015\ASM2BIN\ASM2BIN\obj\Debug\ASM2BIN.pdb

@@ -291,33 +291,7 @@ namespace ASM2BIN
                 result[1] = getStringBefore(result[0], '.');
                 return result;
             }
-            //寻找子元素或父元素
-            public static HtmlElement getRelation(HtmlElement Element, String elementID)
-            {
-                HtmlElement element = Element;
-                String elementName = elementID;
-                String tempID = "";
-                String[] tempStringArray = new String[2];
-                while (elementName.Contains('.'))
-                {
-                    tempStringArray = CodeAnalysis.WebElementCommand.getStringBetweenSideDot(elementName);
-                    elementName = tempStringArray[0];
-                    tempID = tempStringArray[1];
-                    if (tempID == "parent") element = element.Parent;
-                    if (tempID.Contains("children"))
-                    {
-                        int childrenIndex = int.Parse(CodeAnalysis.getStringBetween(tempID, "[", "]"));//获取子索引
-                        element = element.Children[childrenIndex];
-                    }
-                }
-                if (tempID == "parent") element = element.Parent;
-                if (tempID.Contains("children"))
-                {
-                    int childrenIndex = int.Parse(CodeAnalysis.getStringBetween(tempID, "[", "]"));
-                    element = element.Children[childrenIndex];
-                }
-                return element;
-            }
+            
             //检查语句正确性
             //检查是否带有2个参数
             public static String checkParameter2(String command, String[] value)
