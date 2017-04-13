@@ -32,6 +32,7 @@ namespace ASM2BIN
                 catch (Exception e)
                 {
                     Console.WriteLine("error in line : " + lineCounter);
+                    Console.WriteLine("error line : " + line);
                     Console.WriteLine("<exception>");
                     Console.WriteLine(e.ToString());
                     Console.WriteLine("</exception>");
@@ -65,7 +66,8 @@ namespace ASM2BIN
             string bin_addr = "";
 
             string opcode = CodeAnalysis.getCommandString(asmLine);
-            
+            // 调试用
+            // Console.WriteLine(opcode);
             HashOPcode hashOPcode = new HashOPcode();
             // 为opcode字段赋值
             bin_opcode = hashOPcode.OPcodeDict[opcode];
@@ -117,7 +119,7 @@ namespace ASM2BIN
             {
                 // LUI指令
                 bin_rt = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[0]);
-                bin_rs = "000000";
+                bin_rs = "00000";
                 bin_imme = hashOPcode.convertImme(CodeAnalysis.getValueString(asmLine)[1]);
 
                 result = bin_opcode + bin_rs + bin_rt + bin_imme;

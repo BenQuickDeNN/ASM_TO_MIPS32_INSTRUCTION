@@ -21,6 +21,7 @@ namespace ASM2BIN
         public HashOPcode()
         {
             initOPcodeDict();
+            initFuncDict();
         }
         void initOPcodeDict()
         {
