@@ -40,6 +40,11 @@ namespace ASM2BIN
                 ++lineCounter;
             }
             asmReader.Close();
+            // 填充空指令
+            while(binLine.Count < 128)
+            {
+                binLine.Enqueue(HashOPcode.NOP_INSTRUCTION);
+            }
             // 生成新文件
             StreamWriter binWriter = new StreamWriter(fileDest, false, Encoding.UTF8);
             while(binLine.Count > 0)

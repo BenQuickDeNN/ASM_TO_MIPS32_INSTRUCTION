@@ -18,6 +18,10 @@ namespace ASM2BIN
         /// ALU操作哈希表
         /// </summary>
         public Dictionary<string, string> FuncDict = new Dictionary<string, string>();
+        /// <summary>
+        /// 空指令，用于填充
+        /// </summary>
+        public const string NOP_INSTRUCTION = "11111100000000000000000000000000";
         public HashOPcode()
         {
             initOPcodeDict();
