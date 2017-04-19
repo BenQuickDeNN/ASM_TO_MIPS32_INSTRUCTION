@@ -49,6 +49,8 @@ namespace ASM2BIN
             OPcodeDict.Add("BEQ", "000100");
             OPcodeDict.Add("BNQ", "000101");
             OPcodeDict.Add("J", "000010");
+
+            OPcodeDict.Add("NOP", "111111");
         }
         void initFuncDict()
         {
@@ -117,9 +119,25 @@ namespace ASM2BIN
         /// <returns></returns>
         public string converAddr(string addr)
         {
-            string bin_addr = Convert.ToString(int.Parse(addr), 2);
+            string bin_dw = Convert.ToString(int.Parse(addr), 2);
             string result = "";
-            for (int i = bin_addr.Length - 1; i >= bin_addr.Length - 26; --i)
+            for (int i = bin_dw.Length - 1; i >= bin_dw.Length - 26; --i)
+            {
+                if (i >= 0) result = bin_dw.ElementAt(i) + result;
+                else result = '0' + result;
+            }
+            return result;
+        }
+        /// <summary>
+        /// 转换数据定义
+        /// </summary>
+        /// <param name="dw"></param>
+        /// <returns></returns>
+        public string convertDW(string dw)
+        {
+            string bin_addr = Convert.ToString(int.Parse(dw), 2);
+            string result = "";
+            for (int i = bin_addr.Length - 1; i >= bin_addr.Length - 32; --i)
             {
                 if (i >= 0) result = bin_addr.ElementAt(i) + result;
                 else result = '0' + result;

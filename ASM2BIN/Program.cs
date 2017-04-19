@@ -19,15 +19,16 @@ namespace ASM2BIN
                 return;
             }
             string line;
-            int lineCounter = 1;
-            Queue<string> binLine = new Queue<string>();
-            StreamReader asmReader = new StreamReader(fileSource, Encoding.UTF8);
+            int lineCounter = 0;
+            Dictionary<int, CodeLine> binLine = new Dictionary<int, CodeLine>();
+            StreamReader asmReader = new StreamReader(fileSource, Encoding.Default);
             // 读源文件
             while ((line = asmReader.ReadLine()) != null)
             {
                 try
                 {
-                    binLine.Enqueue(convertLine(line));
+                    CodeLine cl = convertLine(line, lineCounter);
+                    if(!binLine.ContainsKey(cl.Line))binLine.Add(cl.Line, cl);
                 }
                 catch (Exception e)
                 {
@@ -41,15 +42,27 @@ namespace ASM2BIN
             }
             asmReader.Close();
             // 填充空指令
-            while(binLine.Count < 128)
+            lineCounter = 0;
+            while(lineCounter < 256)
             {
-                binLine.Enqueue(HashOPcode.NOP_INSTRUCTION);
+                if(!binLine.ContainsKey(lineCounter))binLine.Add(lineCounter, new CodeLine(lineCounter, HashOPcode.NOP_INSTRUCTION));
+                ++lineCounter;
             }
             // 生成新文件
-            StreamWriter binWriter = new StreamWriter(fileDest, false, Encoding.UTF8);
+            lineCounter = 0;
+            StreamWriter binWriter = new StreamWriter(fileDest, false, Encoding.Default);
             while(binLine.Count > 0)
             {
-                binWriter.WriteLine(binLine.Dequeue());
+                if (binLine.ContainsKey(lineCounter))
+                {
+                    binWriter.WriteLine(binLine[lineCounter].Content);
+                    binLine.Remove(lineCounter);
+                }
+                else
+                {
+                    binWriter.WriteLine(HashOPcode.NOP_INSTRUCTION);
+                }
+                ++lineCounter;
             }
             binWriter.Close();
         }
@@ -58,9 +71,9 @@ namespace ASM2BIN
         /// </summary>
         /// <param name="asmLine"></param>
         /// <returns></returns>
-        public static string convertLine(string asmLine)
+        public static CodeLine convertLine(string asmLine, int index)
         {
-            string result = "";
+            CodeLine result = new CodeLine();
             string bin_opcode = "";
             string bin_rs = "";
             string bin_rt = "";
@@ -71,9 +84,21 @@ namespace ASM2BIN
             string bin_addr = "";
 
             string opcode = CodeAnalysis.getCommandString(asmLine);
+            if (string.IsNullOrEmpty(opcode))
+            {
+                result = new CodeLine(260, HashOPcode.NOP_INSTRUCTION);
+                return result;
+            }
             // 调试用
             // Console.WriteLine(opcode);
             HashOPcode hashOPcode = new HashOPcode();
+            // 判断是否为数据定义
+            if (opcode.Equals("DW"))
+            {
+                result = new CodeLine(int.Parse(CodeAnalysis.getValueString(asmLine)[0]), hashOPcode.convertDW(CodeAnalysis.getValueString(asmLine)[1]));
+                if (result.Line < 128) throw new Exception("数据必须定义在第128个存储单元之后！");
+                return result;
+            }
             // 为opcode字段赋值
             bin_opcode = hashOPcode.OPcodeDict[opcode];
             // 判断是否为算术指令
@@ -88,7 +113,7 @@ namespace ASM2BIN
                     bin_rd = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[0]);
                     bin_rt = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[1]);
 
-                    result = bin_opcode + bin_rs + bin_rt + bin_rd + bin_shamt + bin_func;
+                    result = new CodeLine(index, bin_opcode + bin_rs + bin_rt + bin_rd + bin_shamt + bin_func);
                     return result;
                 }
                 // 非移位算术指令
@@ -99,7 +124,7 @@ namespace ASM2BIN
                     bin_rd = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[0]);
                     bin_rt = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[2]);
 
-                    result = bin_opcode + bin_rs + bin_rt + bin_rd + bin_shamt + bin_func;
+                    result = new CodeLine(index, bin_opcode + bin_rs + bin_rt + bin_rd + bin_shamt + bin_func);
                     return result;
                 }
             }
@@ -107,7 +132,7 @@ namespace ASM2BIN
             {
                 // J指令
                 bin_addr = hashOPcode.converAddr(CodeAnalysis.getValueString(asmLine)[0]);
-                result = bin_opcode + bin_addr;
+                result = new CodeLine(index, bin_opcode + bin_addr);
                 return result;
             }
             else if(opcode.Equals("LW") || opcode.Equals("SW"))
@@ -117,7 +142,7 @@ namespace ASM2BIN
                 bin_rs = hashOPcode.convertRegID(CodeAnalysis.getStringBetween(CodeAnalysis.getValueString(asmLine)[1], "(", ")"));
                 bin_imme = hashOPcode.convertImme(CodeAnalysis.getStringBefore(CodeAnalysis.getValueString(asmLine)[1], '('));
 
-                result = bin_opcode + bin_rs + bin_rt + bin_imme;
+                result = new CodeLine(index, bin_opcode + bin_rs + bin_rt + bin_imme);
                 return result;
             }
             else if (opcode.Equals("LUI"))
@@ -127,15 +152,21 @@ namespace ASM2BIN
                 bin_rs = "00000";
                 bin_imme = hashOPcode.convertImme(CodeAnalysis.getValueString(asmLine)[1]);
 
-                result = bin_opcode + bin_rs + bin_rt + bin_imme;
+                result = new CodeLine(index, bin_opcode + bin_rs + bin_rt + bin_imme);
                 return result;
             }
+            else if (opcode.Equals("NOP"))
+            {
+                result = new CodeLine(index, HashOPcode.NOP_INSTRUCTION);
+                return result;
+            }
+            
             // 剩下的都是立即数运算指令
             bin_rt = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[0]);
             bin_rs = hashOPcode.convertRegID(CodeAnalysis.getValueString(asmLine)[1]);
             bin_imme = hashOPcode.convertImme(CodeAnalysis.getValueString(asmLine)[2]);
 
-            result = bin_opcode + bin_rs + bin_rt + bin_imme;
+            result = new CodeLine(index, bin_opcode + bin_rs + bin_rt + bin_imme);
             return result;
         }
     }
